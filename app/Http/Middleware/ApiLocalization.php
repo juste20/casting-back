@@ -3,14 +3,22 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App;
+use Illuminate\Support\Facades\App;
 
 class ApiLocalization
 {
+    private const SUPPORTED_LOCALES = ['fr', 'en'];
+
     public function handle($request, Closure $next)
     {
-        $lang = $request->header('Accept-Language', 'fr');
-        App::setLocale($lang);
+        $header = $request->header('Accept-Language', 'fr');
+
+        $locales = explode(',', $header);
+        $lang = strtolower(trim(explode(';', $locales[0])[0]));
+
+        $locale = in_array($lang, self::SUPPORTED_LOCALES, true) ? $lang : 'fr';
+        App::setLocale($locale);
+
         return $next($request);
     }
 }

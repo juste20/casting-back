@@ -55,7 +55,8 @@ Route::get('/actors/{id}', [ActorController::class, 'show'])
 | Inscription acteurs
 */
 Route::post('/subscription', [SubscriptionController::class, 'store'])
-    ->name('subscription.store');
+    ->name('subscription.store')
+    ->middleware('fraud');
 
 /*
 | Paiement
@@ -129,6 +130,18 @@ Route::prefix('admin')
         Route::get('/subscriptions/{id}', [InscriptionController::class, 'show'])
             ->name('subscriptions.show');
 
+        Route::post('/subscriptions/{id}/approve', [InscriptionController::class, 'approve'])
+            ->name('subscriptions.approve');
+
+        Route::post('/subscriptions/{id}/reject', [InscriptionController::class, 'reject'])
+            ->name('subscriptions.reject');
+
+        Route::post('/subscriptions/{id}/sent', [InscriptionController::class, 'sent'])
+            ->name('subscriptions.sent');
+
+        Route::post('/subscriptions/{id}/received', [InscriptionController::class, 'received'])
+            ->name('subscriptions.received');
+
         /*
         | Paiements
         */
@@ -153,11 +166,17 @@ Route::prefix('admin')
         Route::get('/archives', [ArchiveController::class, 'index'])
             ->name('archives');
 
+        Route::post('/archives/run', [ArchiveController::class, 'run'])
+            ->name('archives.run');
+
         /*
         | Notifications
         */
         Route::get('/notifications', [NotificationController::class, 'index'])
             ->name('notifications');
+
+        Route::get('/notifications/count', [NotificationController::class, 'count'])
+            ->name('notifications.count');
 
         /*
         | Logout admin

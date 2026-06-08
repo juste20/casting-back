@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Archive;
+use App\Services\CastingService;
 
 class ArchiveController extends Controller
 {
-    /**
-     * Page principale des archives (ADMIN BLADE)
-     */
     public function index()
     {
         $castings = Archive::where('type', 'casting')
@@ -29,5 +27,13 @@ class ArchiveController extends Controller
             'subscriptions',
             'payments'
         ));
+    }
+
+    public function run()
+    {
+        app(CastingService::class)->archiveExpired();
+
+        return redirect()->route('admin.archives')
+            ->with('success', 'Archivage effectue avec succes');
     }
 }

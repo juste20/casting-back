@@ -8,7 +8,9 @@ class Subscription extends Model
 {
     protected $fillable = [
         'fullname','email','country',
-        'actor_id','categories','status'
+        'actor_id','categories','status',
+        'payment_reference',
+        'casting_id',
     ];
 
     protected $casts = [
@@ -18,5 +20,10 @@ class Subscription extends Model
     public function actor()
     {
         return $this->belongsTo(Actor::class);
+    }
+
+    public function casting()
+    {
+        return $this->belongsTo(Casting::class);
     }
 }

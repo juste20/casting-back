@@ -2,14 +2,20 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\AntiFraudService;
 use Closure;
+use Illuminate\Http\Request;
 
 class PreventFraud
 {
-    public function handle($request, Closure $next)
+    public function __construct(
+        private readonly AntiFraudService $antiFraud
+    ) {}
+
+    public function handle(Request $request, Closure $next)
     {
-        if ($request->ip() === '0.0.0.0') {
-            return response()->json(['error' => 'Activité suspecte'], 403);
+        if ($this->antiFraud->isFraudulent($request)) {
+            return response()->json(['error' => 'Requête rejetée pour activité suspecte.'], 429);
         }
 
         return $next($request);

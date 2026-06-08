@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Admin;
 
 class AdminAuthController extends Controller
 {
@@ -14,6 +15,30 @@ class AdminAuthController extends Controller
     public function showLoginForm()
     {
         return view('admin.login');
+    }
+
+    /**
+     * API login (Vue JS)
+     */
+    public function loginApi(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $admin = Admin::where('email', $credentials['email'])->first();
+
+        if (!$admin || !Auth::guard('admin')->attempt($credentials)) {
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
+        }
+
+        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'admin' => ['name' => $admin->name, 'email' => $admin->email]
+        ]);
     }
 
     /**

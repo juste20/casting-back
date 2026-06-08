@@ -1,15 +1,9 @@
 <?php
 
 return [
-
     'paths' => ['api/*', 'payment/*'],
-
-    'allowed_methods' => ['*'],
-
-    'allowed_origins' => ['*'],
-
-    'allowed_headers' => ['*'],
-
-    'supports_credentials' => false,
-
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5173')],
+    'allowed_headers' => ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    'supports_credentials' => true,
 ];

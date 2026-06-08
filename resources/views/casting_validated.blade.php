@@ -33,7 +33,7 @@
 </head>
 <body>
 <div class="container">
-    <h2>Casting validé 🎉</h2>
+    <h2>Casting valide</h2>
 
     <p class="badge">Validé</p>
 

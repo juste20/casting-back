@@ -2,248 +2,283 @@
 
 @section('content')
 
-<h2 class="page-title">📝 Historique des Inscriptions</h2>
+<div class="page-header">
+    <h2 class="page-title">Historique des Inscriptions</h2>
+    <span class="page-count">{{ $subscriptions->count() }} entree(s)</span>
+</div>
 
-<table class="table-admin">
+<div class="table-card">
+    <table class="admin-table">
 
-    <thead>
-        <tr>
-            <th>Nom complet</th>
-            <th>Email</th>
-            <th>Pays</th>
-            <th>Actor ID</th>
-            <th>Catégories</th>
-            <th>Statut</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-
-    <tbody>
-
-        @forelse($subscriptions as $subscription)
-
+        <thead>
             <tr>
-
-                <!-- NOM -->
-                <td class="col-name">
-                    {{ $subscription->fullname }}
-                </td>
-
-                <!-- EMAIL -->
-                <td class="col-email">
-                    {{ $subscription->email }}
-                </td>
-
-                <!-- PAYS -->
-                <td class="col-country">
-                    {{ $subscription->country }}
-                </td>
-
-                <!-- ACTOR ID -->
-                <td class="col-actor">
-                    #{{ $subscription->actor_id }}
-                </td>
-
-                <!-- CATEGORIES -->
-                <td class="col-categories">
-
-                    @if(is_array($subscription->categories))
-
-                        @foreach($subscription->categories as $category)
-
-                            <span class="category-badge">
-                                {{ $category }}
-                            </span>
-
-                        @endforeach
-
-                    @else
-
-                        -
-                    
-                    @endif
-
-                </td>
-
-                <!-- STATUS -->
-                <td>
-
-                    @if($subscription->status == 'sent')
-
-                        <span class="badge sent">
-                            📤 Envoyé
-                        </span>
-
-                    @elseif($subscription->status == 'pending')
-
-                        <span class="badge pending">
-                            ⏳ En attente
-                        </span>
-
-                    @else
-
-                        <span class="badge received">
-                            📨 Reçu
-                        </span>
-
-                    @endif
-
-                </td>
-
-                <!-- DATE -->
-                <td class="created-at">
-                    {{ $subscription->created_at->format('d/m/Y H:i') }}
-                </td>
-
+                <th>Nom complet</th>
+                <th>Email</th>
+                <th>Pays</th>
+                <th>Actor ID</th>
+                <th>Catégories</th>
+                <th>Statut</th>
+                <th>Date</th>
             </tr>
+        </thead>
 
-        @empty
+        <tbody>
 
-            <tr>
-                <td colspan="7" class="empty-row">
-                    Aucun historique d'inscription trouvé
-                </td>
-            </tr>
+            @forelse($subscriptions as $subscription)
 
-        @endforelse
+                <tr>
 
-    </tbody>
+                    <td class="cell-name">
+                        <div class="avatar">{{ substr($subscription->fullname, 0, 2) }}</div>
+                        {{ $subscription->fullname }}
+                    </td>
 
-</table>
+                    <td class="cell-email">
+                        {{ $subscription->email }}
+                    </td>
+
+                    <td class="cell-muted">
+                        {{ $subscription->country }}
+                    </td>
+
+                    <td class="cell-actor">
+                        #{{ $subscription->actor_id }}
+                    </td>
+
+                    <td class="cell-categories">
+
+                        @if(is_array($subscription->categories))
+
+                            @foreach($subscription->categories as $category)
+
+                                <span class="label-cat">
+                                    {{ $category }}
+                                </span>
+
+                            @endforeach
+
+                        @else
+
+                            <span class="label-cat dim">-</span>
+
+                        @endif
+
+                    </td>
+
+                    <td>
+                        <span class="label label-{{ $subscription->status == 'sent' ? 'sent' : ($subscription->status == 'pending' ? 'pending' : 'received') }}">
+                            @switch($subscription->status)
+                                @case('sent') Envoyé @break
+                                @case('pending') En attente @break
+                                @default Reçu
+                            @endswitch
+                        </span>
+                    </td>
+
+                    <td class="cell-dim">
+                        {{ $subscription->created_at->format('d/m/Y H:i') }}
+                    </td>
+
+                </tr>
+
+            @empty
+
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        Aucun historique d'inscription trouvé
+                    </td>
+                </tr>
+
+            @endforelse
+
+        </tbody>
+
+    </table>
+</div>
 
 @endsection
 
-
-<!-- CSS EN BAS -->
 <style>
+* {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
-    body {
-        background: #f1f5f9;
-    }
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
 
-    /* TITRE */
-    .page-title {
-        color: #0f172a;
-        font-size: 26px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
 
-    /* TABLE */
-    .table-admin {
-        width: 100%;
-        border-collapse: collapse;
-        background: #ffffff;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
+.page-count {
+    font-size: 13px;
+    background: rgba(255,255,255,0.06);
+    color: #9ca3af;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
 
-    .table-admin thead {
-        background: linear-gradient(90deg, #0f172a, #1e293b);
-        color: #ffffff;
-    }
+.table-card {
+    background: linear-gradient(145deg, rgba(20,20,20,0.95), rgba(10,10,10,0.98));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    overflow-x: auto;
+}
 
-    .table-admin th {
-        padding: 15px;
-        text-align: left;
-        font-size: 14px;
-        letter-spacing: 0.5px;
-    }
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
 
-    .table-admin td {
-        padding: 14px;
-        border-bottom: 1px solid #e5e7eb;
-        font-size: 14px;
-        vertical-align: top;
-    }
+.admin-table thead {
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
 
-    .table-admin tr:nth-child(even) {
-        background: #f8fafc;
-    }
+.admin-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #808080;
+    white-space: nowrap;
+}
 
-    .table-admin tr:hover {
-        background: #e0f2fe;
-        transition: 0.2s;
-    }
+.admin-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+    color: #ffffff;
+}
 
-    /* COLONNES */
-    .col-name {
-        color: #0f172a;
-        font-weight: 600;
-    }
+.admin-table tbody tr:hover {
+    background: rgba(255,255,255,0.03);
+}
 
-    .col-email {
-        color: #2563eb;
-    }
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
 
-    .col-country {
-        color: #7c3aed;
-        font-weight: 500;
-    }
+.cell-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #ffffff;
+}
 
-    .col-actor {
-        color: #ea580c;
-        font-weight: bold;
-    }
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #e50914, #b2070f);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.06);
+}
 
-    .created-at {
-        color: #64748b;
-        font-size: 13px;
-    }
+.cell-email {
+    color: #e50914;
+}
 
-    /* CATEGORIES */
-    .category-badge {
-        display: inline-block;
-        background: #dbeafe;
-        color: #1d4ed8;
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        margin: 2px;
-        font-weight: 500;
-    }
+.cell-muted {
+    color: #808080;
+}
 
-    /* BADGES STATUS */
-    .badge {
-        padding: 7px 12px;
-        border-radius: 30px;
-        font-size: 12px;
-        font-weight: bold;
-        display: inline-block;
-    }
+.cell-actor {
+    color: #fbbf24;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
 
-    .received {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
+.cell-dim {
+    color: #9ca3af;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
 
-    .pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
+.cell-categories {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
 
-    .sent {
-        background: #dcfce7;
-        color: #166534;
-    }
+.label-cat {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    color: #9ca3af;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
 
-    /* LIGNE VIDE */
-    .empty-row {
-        text-align: center;
-        padding: 30px;
-        color: #64748b;
-        font-style: italic;
-    }
+.label-cat.dim {
+    background: rgba(255,255,255,0.03);
+    color: #808080;
+}
 
-    /* GLOBAL */
-    td, th {
-        border-right: 1px solid #f1f5f9;
-    }
+.label {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    td:last-child,
-    th:last-child {
-        border-right: none;
-    }
+.label-pending {
+    background: rgba(245,158,11,0.1);
+    color: #fbbf24;
+}
 
+.label-sent {
+    background: rgba(59,130,246,0.1);
+    color: #60a5fa;
+}
+
+.label-received {
+    background: rgba(16,185,129,0.1);
+    color: #34d399;
+}
+
+.label-validated {
+    background: rgba(16,185,129,0.1);
+    color: #34d399;
+}
+
+.label-rejected {
+    background: rgba(229,9,20,0.1);
+    color: #e50914;
+}
+
+.label-archived {
+    background: rgba(255,255,255,0.05);
+    color: #9ca3af;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 30px;
+    color: #808080;
+    font-style: italic;
+}
 </style>

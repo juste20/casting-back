@@ -1,38 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CastingController;
-use App\Http\Controllers\Admin\InscriptionController;
-use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\ArchiveController;
-use App\Http\Controllers\Admin\NotificationController;
-
 /*
 |--------------------------------------------------------------------------
-| Admin Routes
+| ATTENTION : Ces routes sont dépréciées et dupliquées dans routes/web.php
+| 
+| Le fichier bootstrap/app.php ne charge pas ce fichier.
+| Toutes les routes admin sont définies dans routes/web.php.
+| Ce fichier est conservé uniquement pour référence et sera supprimé
+| après validation que rien ne dépend de ce fichier.
 |--------------------------------------------------------------------------
-| Accès réservé aux administrateurs
 */
-
-Route::middleware(['admin'])->prefix('admin')->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-
-    /* Gestion des castings */
-    Route::get('/castings', [CastingController::class, 'index']);
-    Route::post('/castings/{id}/validate', [CastingController::class, 'validateCasting']);
-    Route::post('/castings/{id}/reject', [CastingController::class, 'rejectCasting']);
-
-    /* Inscriptions */
-    Route::get('/subscriptions', [InscriptionController::class, 'index']);
-
-    /* Paiements */
-    Route::get('/payments', [PaymentController::class, 'index']);
-
-    /* Archives */
-    Route::get('/archives', [ArchiveController::class, 'index']);
-
-    /* Notifications */
-    Route::get('/notifications', [NotificationController::class, 'index']);
-});

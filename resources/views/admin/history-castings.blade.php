@@ -1,15 +1,20 @@
 @extends('admin.layouts.admin')
 
 @section('content')
-    <h2 class="page-title">📜 Historique des Castings</h2>
 
-    <table class="table-admin">
+<div class="page-header">
+    <h2 class="page-title">Historique des Castings</h2>
+    <span class="page-count">{{ $castings->count() }} entree(s)</span>
+</div>
+
+<div class="table-card">
+    <table class="admin-table">
 
         <thead>
             <tr>
                 <th>Titre</th>
                 <th>Pays</th>
-                <th>Date</th>
+                <th>Periode</th>
                 <th>Statut</th>
                 <th>Créé le</th>
             </tr>
@@ -20,31 +25,35 @@
             @forelse($castings as $casting)
                 <tr>
 
-                    <td class="col-title">
+                    <td class="cell-title">
                         {{ $casting->title }}
                     </td>
 
-                    <td class="col-country">
+                    <td class="cell-muted">
                         {{ $casting->country }}
                     </td>
 
-                    <td>
-                        {{ $casting->date }}
-                    </td>
-
-                    <td>
-                        @if ($casting->status === 'validated')
-                            <span class="badge validated">✅ Validé</span>
-                        @elseif($casting->status === 'rejected')
-                            <span class="badge rejected">❌ Rejeté</span>
-                        @elseif($casting->status === 'pending')
-                            <span class="badge pending">⏳ En attente</span>
+                    <td class="cell-dim">
+                        @if($casting->start_date && $casting->end_date)
+                            {{ \Carbon\Carbon::parse($casting->start_date)->format('d/m/Y') }}
+                            - {{ \Carbon\Carbon::parse($casting->end_date)->format('d/m/Y') }}
                         @else
-                            <span class="badge archived">📦 Archivé</span>
+                            {{ $casting->date }}
                         @endif
                     </td>
 
                     <td>
+                        <span class="label label-{{ $casting->status }}">
+                            @switch($casting->status)
+                                @case('validated') Validé @break
+                                @case('rejected') Rejeté @break
+                                @case('pending') En attente @break
+                                @default Archivé
+                            @endswitch
+                        </span>
+                    </td>
+
+                    <td class="cell-dim">
                         {{ $casting->created_at->format('d/m/Y H:i') }}
                     </td>
 
@@ -57,65 +66,137 @@
                         Aucun historique trouvé
                     </td>
                 </tr>
+
             @endforelse
 
         </tbody>
 
     </table>
+</div>
+
 @endsection
 
-
 <style>
-    body {
-        background: #f1f5f9;
-    }
+* {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
-    .page-title {
-        font-size: 26px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
 
-    .table-admin {
-        width: 100%;
-        background: white;
-        border-collapse: collapse;
-    }
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
 
-    .table-admin th,
-    .table-admin td {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-    }
+.page-count {
+    font-size: 13px;
+    background: rgba(255,255,255,0.06);
+    color: #9ca3af;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
 
-    .badge {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-    }
+.table-card {
+    background: linear-gradient(145deg, rgba(20,20,20,0.95), rgba(10,10,10,0.98));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    overflow-x: auto;
+}
 
-    .validated {
-        background: #dcfce7;
-        color: #166534;
-    }
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
 
-    .rejected {
-        background: #fee2e2;
-        color: #991b1b;
-    }
+.admin-table thead {
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
 
-    .pending {
-        background: #fef9c3;
-        color: #854d0e;
-    }
+.admin-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #808080;
+    white-space: nowrap;
+}
 
-    .archived {
-        background: #e2e8f0;
-        color: #334155;
-    }
+.admin-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: middle;
+    color: #ffffff;
+}
 
-    .empty-row {
-        text-align: center;
-        padding: 20px;
-    }
+.admin-table tbody tr:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cell-title {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.cell-muted {
+    color: #808080;
+}
+
+.cell-dim {
+    color: #9ca3af;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.label {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.label-pending {
+    background: rgba(245,158,11,0.1);
+    color: #fbbf24;
+}
+
+.label-validated {
+    background: rgba(16,185,129,0.1);
+    color: #34d399;
+}
+
+.label-rejected {
+    background: rgba(229,9,20,0.1);
+    color: #e50914;
+}
+
+.label-archived {
+    background: rgba(255,255,255,0.05);
+    color: #9ca3af;
+}
+
+.empty-row {
+    text-align: center;
+    padding: 30px;
+    color: #808080;
+    font-style: italic;
+}
 </style>

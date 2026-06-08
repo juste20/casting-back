@@ -11,11 +11,14 @@ class Casting extends Model
     'country',
     'date',
     'time',
+    'start_date',
+    'end_date',
     'description',
     'poster',
     'promoter_email',
     'promoter_phone',
-    'status'
+    'status',
+    'rejection_reason'
 ];
 
     protected $casts = [
