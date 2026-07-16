@@ -15,11 +15,44 @@ class PaymentController extends Controller
     public function callback(Request $request)
     {
         $reference = $request->reference;
-        $status = $request->status;
+        $hash = $request->hash;
+
+        if (!$reference || !$hash) {
+            return view('payment_status', [
+                'status' => 'erreur',
+                'message' => 'Parametres invalides.',
+            ]);
+        }
+
+        $expectedHash = hash_hmac('sha256', $reference, config('app.key'));
+        if (!hash_equals($expectedHash, $hash)) {
+            return view('payment_status', [
+                'status' => 'erreur',
+                'message' => 'Verification echouee.',
+            ]);
+        }
 
         $payment = Payment::where('reference', $reference)->first();
 
-        if ($payment && $status === 'approved') {
+        if (!$payment) {
+            return view('payment_status', [
+                'status' => 'inconnu',
+                'message' => 'Paiement introuvable.',
+            ]);
+        }
+
+        \FedaPay\FedaPay::setApiKey(config('services.fedapay.secret_key'));
+        \FedaPay\FedaPay::setEnvironment(config('services.fedapay.environment'));
+
+        try {
+            $transaction = \FedaPay\Transaction::retrieve($payment->payload['transaction_id'] ?? null);
+            $status = $transaction->status;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Payment callback verification failed: ' . $e->getMessage());
+            $status = 'error';
+        }
+
+        if ($status === 'approved' && $payment->status !== 'success') {
             $payload = $payment->payload;
             \App\Models\Subscription::firstOrCreate(
                 ['email' => $payload['email'] ?? $payment->email],
@@ -51,6 +84,7 @@ class PaymentController extends Controller
             }
         ]);
     }
+
     /**
      * Liste tous les paiements (dashboard admin)
      */
@@ -65,16 +99,17 @@ class PaymentController extends Controller
     public function init(Request $request)
     {
         $request->validate([
-            'firstName' => 'required|string',
-            'lastName' => 'required|string',
+            'firstName' => 'required|string|max:100',
+            'lastName' => 'required|string|max:100',
             'email' => 'required|email',
-            'phone' => 'required|string',
-            'amount' => 'required|numeric|min:100',
+            'phone' => 'required|string|max:20',
         ]);
+
+        $amount = 2000;
 
         $payment = Payment::create([
             'email' => $request->email,
-            'amount' => $request->amount,
+            'amount' => $amount,
             'method' => 'kkiapay',
             'reference' => Str::uuid(),
             'status' => 'pending',
@@ -86,7 +121,7 @@ class PaymentController extends Controller
         ]);
 
         return response()->json([
-            'payment_url' => config('app.url') . '/payment/callback?reference=' . $payment->reference,
+            'payment_url' => config('app.url') . '/payment/callback?reference=' . $payment->reference . '&hash=' . hash_hmac('sha256', $payment->reference, config('app.key')),
             'reference' => $payment->reference
         ]);
     }
@@ -102,13 +137,16 @@ class PaymentController extends Controller
             'full_name' => 'required|string|max:100'
         ]);
 
+        $amount = 2000;
+        $reference = uniqid('cast_');
+
         try {
             $transaction = \FedaPay\Transaction::create([
                 "description" => "Paiement inscription casting",
-                "amount" => (int) $request->amount,
+                "amount" => (int) $amount,
                 "currency" => ["iso" => "XOF"],
-                "callback_url" => config('app.url') . "/api/paiement/callback",
-                "reference" => uniqid('cast_'),
+                "callback_url" => config('app.url') . "/api/v1/payment/callback?reference=" . $reference . "&hash=" . hash_hmac('sha256', $reference, config('app.key')),
+                "reference" => $reference,
                 "customer" => [
                     "email" => $request->email,
                     "firstname" => explode(' ', $request->full_name)[0],
@@ -122,9 +160,9 @@ class PaymentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('FedaPay createPayment error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('FedaPay createPayment error');
             return response()->json([
-                'message' => 'Erreur lors de la création du paiement',
+                'message' => 'Erreur lors de la creation du paiement',
             ], 500);
         }
     }

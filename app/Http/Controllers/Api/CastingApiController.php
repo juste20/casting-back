@@ -12,7 +12,9 @@ class CastingApiController extends Controller
 {
     public function index()
     {
-        return response()->json(Casting::latest()->get());
+        return response()->json(
+            Casting::where('status', 'validated')->latest()->get()
+        );
     }
 
     public function validateCasting($id)
@@ -30,13 +32,14 @@ class CastingApiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|min:5',
-            'country' => 'required|string',
-            'description' => 'required|string|min:20',
+            'title' => 'required|string|min:5|max:255',
+            'country' => 'required|string|max:100',
+            'description' => 'required|string|min:20|max:5000',
             'promoter_email' => 'required|email',
-            'promoter_phone' => 'required|string',
-            'categories' => 'required',
-            'poster' => 'nullable|image|max:5120',
+            'promoter_phone' => 'required|string|max:20',
+            'categories' => 'required|array',
+            'categories.*' => 'string|max:100',
+            'poster' => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
@@ -44,7 +47,7 @@ class CastingApiController extends Controller
         $posterPath = null;
 
         if ($request->hasFile('poster')) {
-            $posterPath = $request->file('poster')->store('castings', 'public');
+            $posterPath = $request->file('poster')->store('castings', 'local');
         }
 
         $casting = Casting::create([
@@ -55,9 +58,7 @@ class CastingApiController extends Controller
             'date' => $request->start_date,
             'time' => now()->format('H:i'),
             'description' => $request->description,
-            'categories' => is_string($request->categories)
-                ? json_decode($request->categories, true)
-                : $request->categories,
+            'categories' => $request->categories,
             'poster' => $posterPath,
             'promoter_email' => $request->promoter_email,
             'promoter_phone' => $request->promoter_phone,
@@ -67,7 +68,7 @@ class CastingApiController extends Controller
         event(new CastingCreated($casting));
 
         return response()->json([
-            'message' => 'Casting créé avec succès',
+            'message' => 'Casting cree avec succes',
             'data' => $casting
         ]);
     }

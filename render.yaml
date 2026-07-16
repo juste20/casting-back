@@ -2,7 +2,6 @@ services:
   - type: web
     name: casting-backend
     runtime: php
-    repo: https://github.com/juste20/casting-back
     region: frankfurt
     plan: free
     buildCommand: composer install --no-dev --optimize-autoloader && php artisan config:cache && php artisan migrate --force
@@ -34,5 +33,7 @@ services:
         sync: false
       - key: FEDAPAY_ENV
         value: sandbox
+      - key: FEDAPAY_WEBHOOK_SECRET
+        sync: false
       - key: MAIL_MAILER
         value: log

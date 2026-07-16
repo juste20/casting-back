@@ -12,25 +12,36 @@ class SubscriptionController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'fullname' => 'required',
-            'email' => 'required|email',
-            'country' => 'required',
-            'actor_id' => 'required',
+        $validated = $request->validate([
+            'fullname' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'country' => 'required|string|max:100',
+            'actor_id' => 'required|integer',
             'categories' => 'required|array',
-            'payment_reference' => 'required'
+            'categories.*' => 'string|max:100',
+            'payment_reference' => 'required|string|max:255'
         ]);
 
-        $payment = Payment::where('reference', $data['payment_reference'])
+        $payment = Payment::where('reference', $validated['payment_reference'])
             ->where('status', 'success')
             ->first();
 
         if (!$payment) {
             return response()->json([
-                'message' => 'Aucun paiement valide trouvé pour cette référence.'
+                'message' => 'Aucun paiement valide trouve pour cette reference.'
             ], 400);
         }
 
-        return Subscription::create($data);
+        $subscription = Subscription::create([
+            'fullname' => $validated['fullname'],
+            'email' => $validated['email'],
+            'country' => $validated['country'],
+            'actor_id' => $validated['actor_id'],
+            'categories' => $validated['categories'],
+            'payment_reference' => $validated['payment_reference'],
+            'status' => 'pending',
+        ]);
+
+        return response()->json($subscription);
     }
 }

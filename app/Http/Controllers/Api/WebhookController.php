@@ -11,6 +11,19 @@ class WebhookController extends Controller
 {
     public function handleFedaPayWebhook(Request $request)
     {
+        $secret = config('services.fedapay.webhook_secret');
+
+        if ($secret) {
+            $signature = $request->header('X-FedaPay-Signature');
+            $payload = $request->getContent();
+            $expected = hash_hmac('sha256', $payload, $secret);
+
+            if (!$signature || !hash_equals($expected, $signature)) {
+                \Illuminate\Support\Facades\Log::warning('Webhook signature verification failed');
+                return response()->json(['message' => 'Signature invalide.'], 401);
+            }
+        }
+
         \FedaPay\FedaPay::setApiKey(config('services.fedapay.secret_key'));
         \FedaPay\FedaPay::setEnvironment(config('services.fedapay.environment'));
 
@@ -26,7 +39,6 @@ class WebhookController extends Controller
             }
 
             if ($status === 'approved' && $payment->status !== 'success') {
-                // Creer la souscription
                 $payload = $payment->payload;
                 Subscription::create([
                     'fullname' => $payload['fullname'] ?? $payment->email,

@@ -64,7 +64,7 @@ Route::post('/subscription', [SubscriptionController::class, 'store'])
 Route::post('/payment/init', [PublicPaymentController::class, 'init'])
     ->name('payment.init');
 
-Route::get('/payment/callback', [PublicPaymentController::class, 'callback'])
+Route::post('/payment/callback', [PublicPaymentController::class, 'callback'])
     ->name('payment.callback');
 
 
@@ -81,6 +81,21 @@ Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])
 
 Route::post('/admin/login', [AdminAuthController::class, 'login'])
     ->name('admin.login.submit');
+
+/*
+| Password Reset
+*/
+Route::get('/admin/forgot-password', [AdminAuthController::class, 'showLinkRequestForm'])
+    ->name('admin.password.request');
+
+Route::post('/admin/forgot-password', [AdminAuthController::class, 'sendResetLinkEmail'])
+    ->name('admin.password.email');
+
+Route::get('/admin/reset-password/{token}', [AdminAuthController::class, 'showResetForm'])
+    ->name('admin.password.reset');
+
+Route::post('/admin/reset-password', [AdminAuthController::class, 'resetPassword'])
+    ->name('admin.password.update');
 
 
 

@@ -23,22 +23,21 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|min:2',
-            'email' => 'required|email',
-            'country' => 'required|string',
-            'actorChosen' => 'nullable|numeric',
+            'name' => 'required|string|min:2|max:255',
+            'email' => 'required|email|max:255',
+            'country' => 'required|string|max:100',
+            'actorChosen' => 'nullable|integer',
             'categories' => 'required|array|min:1',
+            'categories.*' => 'string|max:100',
         ]);
 
-        // Verifier si l'email existe deja (peu importe le statut)
         if (Subscription::where('email', $validated['email'])->exists()) {
             return response()->json(['message' => 'Cet email est deja utilise'], 409);
         }
 
-        $amount = 50;
+        $amount = 2000;
         $reference = 'SUB-' . strtoupper(uniqid());
 
-        // Creer un paiement en attente
         $payment = Payment::create([
             'email' => $validated['email'],
             'amount' => $amount,
@@ -86,21 +85,11 @@ class UserController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('FedaPay registration error: ' . $e->getMessage());
-
-            // Fallback local
-            $fallbackUrl = config('app.url') . "/api/v1/payment/callback?reference=" . $reference . "&status=approved";
-            $payment->update([
-                'payload' => array_merge($payment->payload ?? [], [
-                    'fallback' => true,
-                ])
-            ]);
+            \Illuminate\Support\Facades\Log::error('FedaPay registration error');
 
             return response()->json([
-                'payment_url' => $fallbackUrl,
-                'reference' => $reference,
-                'fallback' => true,
-            ]);
+                'message' => 'Erreur lors de la creation du paiement. Veuillez reessayer.',
+            ], 500);
         }
     }
 }

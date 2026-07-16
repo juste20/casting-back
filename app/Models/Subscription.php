@@ -10,7 +10,6 @@ class Subscription extends Model
         'fullname','email','country',
         'actor_id','categories','status',
         'payment_reference',
-        'casting_id',
     ];
 
     protected $casts = [

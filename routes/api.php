@@ -19,10 +19,10 @@ Route::prefix('v1')->middleware('api.locale')->group(function () {
     // Routes PUBLIQUES (pas d'auth requise)
     Route::post('/admin/login', [AdminAuthController::class, 'loginApi'])->middleware('throttle:5,1');
     Route::get('/castings', [CastingApiController::class, 'index']);
-    Route::post('/contact', [ContactController::class, 'store'])->middleware('fraud');
-    Route::post('/payment/init', [ApiPaymentController::class, 'init']);
-    Route::post('/payments', [ApiPaymentController::class, 'createPayment']);
-    Route::post('/users/register', [UserController::class, 'register'])->middleware(['throttle:30,5', 'fraud']);
+    Route::post('/contact', [ContactController::class, 'store'])->middleware(['throttle:10,1', 'fraud']);
+    Route::post('/payment/init', [ApiPaymentController::class, 'init'])->middleware('throttle:10,1');
+    Route::post('/payments', [ApiPaymentController::class, 'createPayment'])->middleware('throttle:10,1');
+    Route::post('/users/register', [UserController::class, 'register'])->middleware(['throttle:5,1', 'fraud']);
 
     // Routes protégées par token Sanctum
     Route::middleware('api.auth')->group(function () {
@@ -34,9 +34,13 @@ Route::prefix('v1')->middleware('api.locale')->group(function () {
         Route::get('/payments/all', [ApiPaymentController::class, 'index']);
     });
 
-    // Webhooks - pas d'auth, mais devrait être vérifié par signature
+    // Password Reset API
+    Route::post('/admin/forgot-password', [AdminAuthController::class, 'forgotPasswordApi'])->middleware('throttle:3,1');
+    Route::post('/admin/reset-password', [AdminAuthController::class, 'resetPasswordApi'])->middleware('throttle:3,1');
+
+    // Webhooks
     Route::post('/webhooks/fedapay', [WebhookController::class, 'handleFedaPayWebhook']);
 });
 
-// Callback FedaPay (sans prefix v1 pour compatibilite)
-Route::get('/v1/payment/callback', [App\Http\Controllers\Api\PaymentController::class, 'callback']);
+// Callback FedaPay (POST uniquement pour securite)
+Route::post('/v1/payment/callback', [App\Http\Controllers\Api\PaymentController::class, 'callback'])->middleware('throttle:30,1');

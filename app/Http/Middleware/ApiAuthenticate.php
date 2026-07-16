@@ -14,7 +14,7 @@ class ApiAuthenticate
         $token = $request->bearerToken();
 
         if (!$token) {
-            return response()->json(['message' => 'Non authentifié.'], 401);
+            return response()->json(['message' => 'Non authentifie.'], 401);
         }
 
         $accessToken = PersonalAccessToken::findToken($token);
@@ -24,13 +24,17 @@ class ApiAuthenticate
         }
 
         if ($accessToken->expires_at && now()->gt($accessToken->expires_at)) {
-            return response()->json(['message' => 'Token expiré.'], 401);
+            return response()->json(['message' => 'Token expire.'], 401);
         }
 
         $tokenable = $accessToken->tokenable;
 
         if (!$tokenable || !$tokenable instanceof \App\Models\Admin) {
-            return response()->json(['message' => 'Accès non autorisé.'], 403);
+            return response()->json(['message' => 'Acces non autorise.'], 403);
+        }
+
+        if (!$accessToken->can('admin')) {
+            return response()->json(['message' => 'Permission insuffisante.'], 403);
         }
 
         Auth::guard('admin')->login($tokenable);
