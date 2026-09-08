@@ -23,12 +23,13 @@ Route::prefix('v1')->middleware('api.locale')->group(function () {
     Route::post('/payment/init', [ApiPaymentController::class, 'init'])->middleware('throttle:10,1');
     Route::post('/payments', [ApiPaymentController::class, 'createPayment'])->middleware('throttle:10,1');
     Route::post('/users/register', [UserController::class, 'register'])->middleware(['throttle:5,1', 'fraud']);
+     Route::post('/castings', [CastingApiController::class, 'store'])->middleware(['throttle:10,1', 'fraud']);
 
     // Routes protégées par token Sanctum
     Route::middleware('api.auth')->group(function () {
         Route::get('/stats', [StatsController::class, 'index']);
         Route::get('/users/all', [UserController::class, 'index']);
-        Route::post('/castings', [CastingApiController::class, 'store']);
+        /* Route::post('/castings', [CastingApiController::class, 'store']); */
         Route::put('/castings/validate/{id}', [CastingApiController::class, 'validateCasting']);
         Route::get('/castings/{id}/poster', [CastingApiController::class, 'poster']);
         Route::get('/payments/all', [ApiPaymentController::class, 'index']);
@@ -43,4 +44,5 @@ Route::prefix('v1')->middleware('api.locale')->group(function () {
 });
 
 // Callback FedaPay (POST uniquement pour securite)
-Route::post('/v1/payment/callback', [App\Http\Controllers\Api\PaymentController::class, 'callback'])->middleware('throttle:30,1');
+/* Route::post('/v1/payment/callback', [App\Http\Controllers\Api\PaymentController::class, 'callback'])->middleware('throttle:30,1'); */
+Route::match(['get', 'post'], '/v1/payment/callback', [App\Http\Controllers\Api\PaymentController::class, 'callback'])->middleware('throttle:30,1');

@@ -39,7 +39,7 @@ class WebhookController extends Controller
             }
 
             if ($status === 'approved' && $payment->status !== 'success') {
-                $payload = $payment->payload;
+                /* $payload = $payment->payload;
                 Subscription::create([
                     'fullname' => $payload['fullname'] ?? $payment->email,
                     'email' => $payload['email'] ?? $payment->email,
@@ -48,7 +48,20 @@ class WebhookController extends Controller
                     'categories' => $payload['categories'] ?? [],
                     'status' => 'pending',
                     'payment_reference' => $reference,
-                ]);
+                ]); */
+
+               $payload = $payment->payload;
+                Subscription::firstOrCreate(
+                    ['payment_reference' => $reference],
+                    [
+                        'fullname' => $payload['fullname'] ?? $payment->email,
+                        'email' => $payload['email'] ?? $payment->email,
+                        'country' => $payload['country'] ?? 'Autre',
+                        'actor_id' => $payload['actor_id'] ?? null,
+                        'categories' => $payload['categories'] ?? [],
+                        'status' => 'pending',
+                    ]
+                );
 
                 $payment->update(['status' => 'success']);
 

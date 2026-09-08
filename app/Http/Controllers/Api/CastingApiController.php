@@ -50,7 +50,7 @@ class CastingApiController extends Controller
             $posterPath = $request->file('poster')->store('castings', 'local');
         }
 
-        $casting = Casting::create([
+       /*  $casting = Casting::create([
             'title' => $request->title,
             'country' => $request->country,
             'start_date' => $request->start_date,
@@ -65,11 +65,47 @@ class CastingApiController extends Controller
             'status' => 'pending'
         ]);
 
+        event(new CastingCreated($casting)); */
+        
+                $casting = Casting::create([
+            'title' => $request->title,
+            'country' => $request->country,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'date' => $request->start_date,
+            'time' => now()->format('H:i'),
+            'description' => $request->description,
+            'poster' => $posterPath,
+            'promoter_email' => $request->promoter_email,
+            'promoter_phone' => $request->promoter_phone,
+            'status' => 'pending'
+        ]);
+
+        $categoryIds = collect($request->categories)->map(function ($name) {
+            return \App\Models\CastingCategory::firstOrCreate(['name' => $name])->id;
+        });
+
+        $casting->categories()->sync($categoryIds);
+
         event(new CastingCreated($casting));
 
         return response()->json([
             'message' => 'Casting cree avec succes',
             'data' => $casting
         ]);
+    }
+
+         public function poster($id)
+    {
+        $casting = Casting::findOrFail($id);
+
+        if (!$casting->poster || !Storage::disk('local')->exists($casting->poster)) {
+            abort(404, 'Affiche introuvable.');
+        }
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('local');
+
+        return $disk->response($casting->poster);
     }
 }

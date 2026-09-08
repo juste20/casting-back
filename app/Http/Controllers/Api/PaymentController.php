@@ -53,7 +53,7 @@ class PaymentController extends Controller
         }
 
         if ($status === 'approved' && $payment->status !== 'success') {
-            $payload = $payment->payload;
+          /*   $payload = $payment->payload;
             \App\Models\Subscription::firstOrCreate(
                 ['email' => $payload['email'] ?? $payment->email],
                 [
@@ -63,6 +63,18 @@ class PaymentController extends Controller
                     'categories' => $payload['categories'] ?? [],
                     'status' => 'pending',
                     'payment_reference' => $reference,
+                ]
+            ); */
+                        $payload = $payment->payload;
+            \App\Models\Subscription::firstOrCreate(
+                ['payment_reference' => $reference],
+                [
+                    'fullname' => $payload['fullname'] ?? $payment->email,
+                    'email' => $payload['email'] ?? $payment->email,
+                    'country' => $payload['country'] ?? 'Autre',
+                    'actor_id' => $payload['actor_id'] ?? null,
+                    'categories' => $payload['categories'] ?? [],
+                    'status' => 'pending',
                 ]
             );
             $payment->update(['status' => 'success']);
@@ -105,7 +117,7 @@ class PaymentController extends Controller
             'phone' => 'required|string|max:20',
         ]);
 
-        $amount = 2000;
+     /*    $amount = 100;
 
         $payment = Payment::create([
             'email' => $request->email,
@@ -124,6 +136,62 @@ class PaymentController extends Controller
             'payment_url' => config('app.url') . '/payment/callback?reference=' . $payment->reference . '&hash=' . hash_hmac('sha256', $payment->reference, config('app.key')),
             'reference' => $payment->reference
         ]);
+    } */
+
+                $amount = 100;
+        $reference = (string) Str::uuid();
+
+        $payment = Payment::create([
+            'email' => $request->email,
+            'amount' => $amount,
+            'method' => 'fedapay',
+            'reference' => $reference,
+            'status' => 'pending',
+            'payload' => [
+                'firstName' => $request->firstName,
+                'lastName' => $request->lastName,
+                'phone' => $request->phone,
+            ]
+        ]);
+
+        try {
+            \FedaPay\FedaPay::setApiKey(config('services.fedapay.secret_key'));
+            \FedaPay\FedaPay::setEnvironment(config('services.fedapay.environment'));
+
+            $transaction = \FedaPay\Transaction::create([
+                "description" => "Paiement Casting.net",
+                "amount" => $amount,
+                "currency" => ["iso" => "XOF"],
+                "callback_url" => config('app.url') . "/api/v1/payment/callback?reference=" . $reference . "&hash=" . hash_hmac('sha256', $reference, config('app.key')),
+                "reference" => $reference,
+                "customer" => [
+                    "email" => $request->email,
+                    "firstname" => $request->firstName,
+                    "lastname" => $request->lastName,
+                ]
+            ]);
+
+            $token = $transaction->generateToken();
+
+            $payment->update([
+                'payload' => array_merge($payment->payload ?? [], [
+                    'transaction_id' => $transaction->id,
+                    'fedapay_token' => $token->token,
+                ])
+            ]);
+
+            return response()->json([
+                'payment_url' => $token->url,
+                'reference' => $reference,
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Payment init error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Erreur lors de la creation du paiement. Veuillez reessayer.',
+            ], 500);
+        }
     }
 
     public function createPayment(Request $request)
@@ -137,7 +205,7 @@ class PaymentController extends Controller
             'full_name' => 'required|string|max:100'
         ]);
 
-        $amount = 2000;
+        $amount = 100;
         $reference = uniqid('cast_');
 
         try {

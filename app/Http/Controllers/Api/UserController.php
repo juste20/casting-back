@@ -35,7 +35,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Cet email est deja utilise'], 409);
         }
 
-        $amount = 2000;
+        $amount = 100;
         $reference = 'SUB-' . strtoupper(uniqid());
 
         $payment = Payment::create([
@@ -61,7 +61,8 @@ class UserController extends Controller
                 "description" => "Inscription Casting.net",
                 "amount" => $amount,
                 "currency" => ["iso" => "XOF"],
-                "callback_url" => config('app.url') . "/api/v1/payment/callback?reference=" . $reference,
+                /* "callback_url" => config('app.url') . "/api/v1/payment/callback?reference=" . $reference, */
+                "callback_url" => config('app.url') . "/api/v1/payment/callback?reference=" . $reference . "&hash=" . hash_hmac('sha256', $reference, config('app.key')),
                 "reference" => $reference,
                 "customer" => [
                     "email" => $validated['email'],

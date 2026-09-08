@@ -1,0 +1,66 @@
+name: DeployBackendCastingNet
+
+on:
+  push:
+    branches:
+      - risque
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 72.60.93.30
+          username: u945889700
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 65002
+          script: |
+            cd ~/domains/casting-net.com
+
+            # Clone ou pull le projet
+            if [ -d "backend_app/.git" ]; then
+              cd backend_app
+              git pull https://${{ secrets.GH_TOKEN }}@github.com/juste20/casting-back.git risque
+            else
+              git clone -b risque https://${{ secrets.GH_TOKEN }}@github.com/juste20/casting-back.git backend_app
+              cd backend_app
+            fi
+
+            # Installer les dépendances Laravel
+            cd ~/domains/casting-net.com/backend_app
+            composer install --no-dev --optimize-autoloader
+
+            # Copier les assets publics
+            cp -r ~/domains/casting-net.com/backend_app/public/* \
+                  ~/domains/casting-net.com/public_html/backend/
+
+            # Créer le index.php pont
+            cat > ~/domains/casting-net.com/public_html/backend/index.php << 'EOF'
+            <?php
+            use Illuminate\Foundation\Application;
+            use Illuminate\Http\Request;
+            define('LARAVEL_START', microtime(true));
+            if (file_exists($maintenance = __DIR__.'/../../backend_app/storage/framework/maintenance.php')) {
+                require $maintenance;
+            }
+            require __DIR__.'/../../backend_app/vendor/autoload.php';
+            $app = require_once __DIR__.'/../../backend_app/bootstrap/app.php';
+            $app->handleRequest(Request::capture());
+            EOF
+
+            # Lien symbolique storage (isolé pour ce projet)
+            rm -rf ~/domains/casting-net.com/public_html/backend/storage
+            ln -s ~/domains/casting-net.com/backend_app/storage/app/public \
+                  ~/domains/casting-net.com/public_html/backend/storage
+
+            # Caches Laravel
+            cd ~/domains/casting-net.com/backend_app
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan migrate --force

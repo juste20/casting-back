@@ -5,8 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Casting;
 use App\Models\Subscription;
+/* use App\Models\Notification;
+use App\Mail\CastingNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail; */
+
 use App\Models\Notification;
 use App\Mail\CastingNotification;
+use App\Services\CastingMatchingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -24,7 +30,7 @@ class CastingController extends Controller
         return response()->json($casting);
     }
 
-    public function validateCasting(Request $request, $id)
+   /*  public function validateCasting(Request $request, $id)
     {
         $casting = Casting::findOrFail($id);
         $casting->update(['status' => 'validated']);
@@ -39,6 +45,33 @@ class CastingController extends Controller
         } catch (\Exception $e) {
             // silence
         }
+
+        return redirect()->back()->with('success', 'Casting valide avec succes');
+    } */
+       public function validateCasting(Request $request, $id, CastingMatchingService $matchingService)
+    {
+        $casting = Casting::findOrFail($id);
+
+        if ($casting->status === 'validated') {
+            return redirect()->back()->with('success', 'Ce casting est deja valide.');
+        }
+
+        $casting->update(['status' => 'validated']);
+
+        Notification::create([
+            'type' => 'casting',
+            'message' => "Casting approuve : {$casting->title}",
+        ]);
+
+        try {
+            Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
+        } catch (\Exception $e) {
+            // silence
+        }
+
+        // Envoie un email a tous les candidats dont les categories
+        // correspondent a ce casting.
+        $matchingService->notifyMatchingCandidates($casting);
 
         return redirect()->back()->with('success', 'Casting valide avec succes');
     }
