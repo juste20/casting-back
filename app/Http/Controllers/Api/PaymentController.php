@@ -51,7 +51,6 @@ class PaymentController extends Controller
             \Illuminate\Support\Facades\Log::error('Payment callback verification failed: ' . $e->getMessage());
             $status = 'error';
         }
-
         if ($status === 'approved' && $payment->status !== 'success') {
           /*   $payload = $payment->payload;
             \App\Models\Subscription::firstOrCreate(
