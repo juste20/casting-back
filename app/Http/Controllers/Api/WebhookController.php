@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\Subscription;
-
 class WebhookController extends Controller
 {
     public function handleFedaPayWebhook(Request $request)
