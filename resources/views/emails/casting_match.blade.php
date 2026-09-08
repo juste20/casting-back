@@ -80,7 +80,6 @@
         @endif
         <p><strong>Description :</strong><br>{{ \Illuminate\Support\Str::limit($casting->description, 400) }}</p>
     </div>
-
     <a href="{{ rtrim(config('app.frontend_url', config('app.url')), '/') }}/casting" class="btn">
         Voir les castings disponibles
     </a>

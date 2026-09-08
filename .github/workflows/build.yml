@@ -33,7 +33,8 @@ jobs:
 
             # Installer les dépendances Laravel
             cd ~/domains/casting-net.com/backend_app
-            composer install --no-dev --optimize-autoloader
+             composer install --no-dev --optimize-autoloader --no-scripts
+            php artisan package:discover --ansi
 
             # Copier les assets publics
             cp -r ~/domains/casting-net.com/backend_app/public/* \
