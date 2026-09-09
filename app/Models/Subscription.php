@@ -19,7 +19,7 @@ class Subscription extends Model
         'categories' => 'array'
     ];
 
-    protected static function booted(): void
+    /* protected static function booted(): void
     {
         static::created(function (Subscription $subscription) {
             if (!$subscription->email) {
@@ -35,7 +35,27 @@ class Subscription extends Model
                 ]);
             }
         });
-    }
+    } */
+
+        protected static function booted(): void
+{
+    static::created(function (Subscription $subscription) {
+        if (!$subscription->email) {
+            return;
+        }
+
+        dispatch(function () use ($subscription) {
+            try {
+                Mail::to($subscription->email)->send(new SubscriptionConfirmationMail($subscription));
+            } catch (\Throwable $e) {
+                Log::error('Echec envoi email de confirmation d\'inscription', [
+                    'subscription_id' => $subscription->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
+    });
+}
 
     public function actor()
     {

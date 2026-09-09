@@ -24,7 +24,7 @@ class Casting extends Model
         'rejection_reason'
     ];
 
-    protected static function booted(): void
+    /* protected static function booted(): void
     {
         static::created(function (Casting $casting) {
             if (!$casting->promoter_email) {
@@ -40,7 +40,27 @@ class Casting extends Model
                 ]);
             }
         });
-    }
+    } */
+
+        protected static function booted(): void
+{
+    static::created(function (Casting $casting) {
+        if (!$casting->promoter_email) {
+            return;
+        }
+
+        dispatch(function () use ($casting) {
+            try {
+                Mail::to($casting->promoter_email)->send(new CastingSubmissionReceivedMail($casting));
+            } catch (\Throwable $e) {
+                Log::error('Echec envoi email de reception de casting', [
+                    'casting_id' => $casting->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
+    });
+}
 
     public function categories()
     {

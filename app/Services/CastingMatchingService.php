@@ -17,7 +17,40 @@ class CastingMatchingService
      *
      * @return int Nombre d'emails envoyes avec succes
      */
-    public function notifyMatchingCandidates(Casting $casting): int
+
+    public function notifyMatchingCandidates(Casting $casting): void
+{
+    $categoryNames = $casting->categories()->pluck('name')->filter()->unique()->values();
+
+    if ($categoryNames->isEmpty()) {
+        return;
+    }
+
+    $candidates = Subscription::where(function ($query) use ($categoryNames) {
+        foreach ($categoryNames as $name) {
+            $query->orWhereJsonContains('categories', $name);
+        }
+    })->get();
+
+    dispatch(function () use ($candidates, $casting) {
+        foreach ($candidates as $subscription) {
+            if (!filter_var($subscription->email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            try {
+                Mail::to($subscription->email)->send(new CastingMatchMail($casting, $subscription));
+            } catch (\Throwable $e) {
+                Log::error('Echec envoi email casting correspondant', [
+                    'subscription_id' => $subscription->id,
+                    'casting_id' => $casting->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    })->afterResponse();
+}
+    /* public function notifyMatchingCandidates(Casting $casting): int
     {
         $categoryNames = $casting->categories()->pluck('name')->filter()->unique()->values();
 
@@ -51,5 +84,5 @@ class CastingMatchingService
         }
 
         return $sent;
-    }
+    } */
 }

@@ -63,11 +63,19 @@ class CastingController extends Controller
             'message' => "Casting approuve : {$casting->title}",
         ]);
 
-        try {
+        /* try {
             Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
         } catch (\Exception $e) {
             // silence
-        }
+        } */
+
+       dispatch(function () use ($casting) {
+                try {
+                    Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
+                } catch (\Throwable $e) {
+                    // silence
+                }
+            })->afterResponse();
 
         // Envoie un email a tous les candidats dont les categories
         // correspondent a ce casting.
@@ -89,11 +97,19 @@ class CastingController extends Controller
             'message' => "Casting rejete : {$casting->title}" . ($request->reason ? " - {$request->reason}" : ""),
         ]);
 
-        try {
+        /* try {
             Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'rejected'));
         } catch (\Exception $e) {
             // silence
-        }
+        } */
+
+            dispatch(function () use ($casting) {
+    try {
+        Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'rejected'));
+    } catch (\Throwable $e) {
+        // silence
+    }
+})->afterResponse();
 
         return redirect()->back()->with('success', 'Casting rejete');
     }
