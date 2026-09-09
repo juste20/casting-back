@@ -12,7 +12,6 @@
             max-width: 600px;
             background: #ffffff;
             margin: 40px auto;
-            padding: 30px;
             border-radius: 8px;
         }
         h2 {
@@ -25,26 +24,29 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Inscription réussie</h2>
+<div class="container" style="padding: 0; overflow: hidden;">
+    @include('emails.partials.header')
+    <div style="padding: 30px;">
+        <h2>Inscription réussie</h2>
 
-    <p>Bonjour {{ $subscription->fullname }},</p>
+        <p>Bonjour {{ $subscription->fullname }},</p>
 
-    <p>
-        Votre inscription a été validée.
-        Vous recevrez les castings correspondant à vos préférences.
-    </p>
+        <p>
+            Votre inscription a été validée.
+            Vous recevrez les castings correspondant à vos préférences.
+        </p>
 
-    <p>
-        Pour vous inscription et recevoir un autre casting :
-        <a href="https://casting.net.com">cliquez ici</a>
-    </p>
-    <p>
-        Vous pouvez faire autant d'inscription que vous souhaitez pour recevoir d'avantage de casting disponible.
-    </p>
-    <p>
-        Casting.net
-    </p>
+        <p>
+            Pour vous inscrire et recevoir un autre casting :
+            <a href="https://casting-net.com">cliquez ici</a>
+        </p>
+        <p>
+            Vous pouvez faire autant d'inscriptions que vous souhaitez pour recevoir davantage de castings disponibles.
+        </p>
+        <p>
+            Casting.net
+        </p>
+    </div>
 </div>
 </body>
 </html>

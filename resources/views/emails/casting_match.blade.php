@@ -15,7 +15,6 @@
             margin: 40px auto;
             background: #ffffff;
             border-radius: 8px;
-            padding: 30px;
         }
         h2 {
             color: #1e3a8a;
@@ -56,41 +55,44 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Un casting correspond à votre profil !</h2>
+<div class="container" style="padding: 0; overflow: hidden;">
+    @include('emails.partials.header')
+    <div style="padding: 30px;">
+        <h2>Un casting correspond à votre profil !</h2>
 
-    <p>Bonjour {{ $subscription->fullname }},</p>
+        <p>Bonjour {{ $subscription->fullname }},</p>
 
-    <p>
-        Bonne nouvelle : un nouveau casting vient d'être validé dans une catégorie
-        qui correspond à votre inscription sur Casting.net.
-    </p>
+        <p>
+            Bonne nouvelle : un nouveau casting vient d'être validé dans une catégorie
+            qui correspond à votre inscription sur Casting.net.
+        </p>
 
-    <div class="details">
-        <p><strong>Titre :</strong> {{ $casting->title }}</p>
-        <p><strong>Pays :</strong> {{ $casting->country }}</p>
-        @if($casting->start_date)
-            <p>
-                <strong>Période :</strong>
-                {{ \Illuminate\Support\Carbon::parse($casting->start_date)->format('d/m/Y') }}
-                @if($casting->end_date)
-                    au {{ \Illuminate\Support\Carbon::parse($casting->end_date)->format('d/m/Y') }}
-                @endif
-            </p>
-        @endif
-        <p><strong>Description :</strong><br>{{ \Illuminate\Support\Str::limit($casting->description, 400) }}</p>
-    </div>
-    <a href="{{ rtrim(config('app.frontend_url', config('app.url')), '/') }}/casting" class="btn">
-        Voir les castings disponibles
-    </a>
+        <div class="details">
+            <p><strong>Titre :</strong> {{ $casting->title }}</p>
+            <p><strong>Pays :</strong> {{ $casting->country }}</p>
+            @if($casting->start_date)
+                <p>
+                    <strong>Période :</strong>
+                    {{ \Illuminate\Support\Carbon::parse($casting->start_date)->format('d/m/Y') }}
+                    @if($casting->end_date)
+                        au {{ \Illuminate\Support\Carbon::parse($casting->end_date)->format('d/m/Y') }}
+                    @endif
+                </p>
+            @endif
+            <p><strong>Description :</strong><br>{{ \Illuminate\Support\Str::limit($casting->description, 400) }}</p>
+        </div>
+        <a href="{{ rtrim(config('app.frontend_url', config('app.url')), '/') }}/casting" class="btn">
+            Voir les castings disponibles
+        </a>
 
-    <p style="margin-top: 24px;">
-        Bonne chance,<br>
-        <strong>L'équipe Casting.net</strong>
-    </p>
+        <p style="margin-top: 24px;">
+            Bonne chance,<br>
+            <strong>L'équipe Casting.net</strong>
+        </p>
 
-    <div class="footer">
-        &copy; {{ date('Y') }} Casting.net — Tous droits réservés
+        <div class="footer">
+            &copy; {{ date('Y') }} Casting.net — Tous droits réservés
+        </div>
     </div>
 </div>
 </body>

@@ -15,7 +15,6 @@
             margin: 40px auto;
             background: #ffffff;
             border-radius: 8px;
-            padding: 30px;
         }
         h2 {
             color: #1e3a8a;
@@ -33,25 +32,28 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>Nouveau casting reçu</h2>
+<div class="container" style="padding: 0; overflow: hidden;">
+    @include('emails.partials.header')
+    <div style="padding: 30px;">
+        <h2>Nouveau casting reçu</h2>
 
-    <p>Bonjour,</p>
+        <p>Bonjour,</p>
 
-    <p>
-        Nous confirmons la bonne réception de votre casting
-        <strong>{{ $casting->title }}</strong>.
-    </p>
+        <p>
+            Nous confirmons la bonne réception de votre casting
+            <strong>{{ $casting->title }}</strong>.
+        </p>
 
-    <p>
-        Il est actuellement en cours de vérification par notre équipe.
-        Vous recevrez une notification dès qu’une décision sera prise.
-    </p>
+        <p>
+            Il est actuellement en cours de vérification par notre équipe.
+            Vous recevrez une notification dès qu'une décision sera prise.
+        </p>
 
-    <p>Merci pour votre confiance.</p>
+        <p>Merci pour votre confiance.</p>
 
-    <div class="footer">
-        © {{ date('Y') }} Casting.net — Tous droits réservés
+        <div class="footer">
+            © {{ date('Y') }} Casting.net — Tous droits réservés
+        </div>
     </div>
 </div>
 </body>
