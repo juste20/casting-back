@@ -7,7 +7,7 @@ use Illuminate\Http\Middleware\TrustProxies as Middleware;
 
 class TrustProxies extends Middleware
 {
-    protected $proxies = [
+    /* protected $proxies = [
         '13.64.0.0/11',
         '13.104.0.0/14',
         '20.33.0.0/16',
@@ -18,7 +18,8 @@ class TrustProxies extends Middleware
         '65.52.0.0/14',
         '104.40.0.0/13',
         '147.243.0.0/16',
-    ];
+    ]; */
+    protected $proxies = '*';
 
     protected $headers =
         Request::HEADER_X_FORWARDED_FOR |

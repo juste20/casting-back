@@ -37,7 +37,7 @@ jobs:
             php artisan package:discover --ansi
 
             # Copier les assets publics
-            cp -r ~/domains/casting-net.com/backend_app/public/. \
+            cp -r ~/domains/casting-net.com/backend_app/public/* \
                   ~/domains/casting-net.com/public_html/backend/
 
             # Créer le index.php pont
