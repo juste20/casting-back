@@ -5,6 +5,12 @@
     <div style="max-width: 600px; margin: 0 auto; background: #141414; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
 
         @include('emails.partials.header')
+        @if($action !== 'approved' && !empty($reason))
+            <div style="background: rgba(229,9,20,0.08); border-left: 4px solid #e50914; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                <p style="margin: 0 0 4px; color: #808080; font-size: 12px;">Motif du rejet / Reason for rejection</p>
+                <p style="margin: 0; color: #fff; line-height: 1.6;">{{ $reason }}</p>
+            </div>
+        @endif
 
         <div style="padding: 32px;">
 

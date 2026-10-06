@@ -8,6 +8,9 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('castings:archive', function () {
-    app(\App\Services\CastingService::class)->archiveExpired();
-    $this->info('Castings expires archives avec succes.');
-})->purpose('Archiver les castings dont la date de fin est depassee');
+    $done = app(\App\Services\ArchiveService::class)->runAll();
+    $this->info(sprintf(
+        'Archives : %d casting(s), %d inscription(s), %d paiement(s).',
+        $done['castings'], $done['subscriptions'], $done['payments']
+    ));
+})->purpose('Archiver castings expires, inscriptions et paiements traites');

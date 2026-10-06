@@ -4,114 +4,49 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Casting;
-use App\Models\Subscription;
-/* use App\Models\Notification;
-use App\Mail\CastingNotification;
+use App\Services\CastingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail; */
-
-use App\Models\Notification;
-use App\Mail\CastingNotification;
-use App\Services\CastingMatchingService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class CastingController extends Controller
 {
     public function index()
     {
-        $castings = Casting::latest()->get();
+        $castings = Casting::where('status', '!=', 'archived')->latest()->get();
         return view('admin.castings', compact('castings'));
     }
 
     public function show($id)
     {
-        $casting = Casting::findOrFail($id);
-        return response()->json($casting);
+        return response()->json(Casting::findOrFail($id));
     }
 
-   /*  public function validateCasting(Request $request, $id)
+    public function validateCasting(Request $request, $id, CastingService $castingService)
     {
         $casting = Casting::findOrFail($id);
-        $casting->update(['status' => 'validated']);
 
-        Notification::create([
-            'type' => 'casting',
-            'message' => "Casting approuve : {$casting->title}",
-        ]);
-
-        try {
-            Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
-        } catch (\Exception $e) {
-            // silence
+        if (!$castingService->validate($casting)) {
+            return redirect()->back()->with('error', 'Ce casting a deja ete traite.');
         }
 
         return redirect()->back()->with('success', 'Casting valide avec succes');
-    } */
-       public function validateCasting(Request $request, $id, CastingMatchingService $matchingService)
+    }
+
+    public function rejectCasting(Request $request, $id, CastingService $castingService)
     {
+        $data = $request->validate([
+            'reason' => 'required|string|min:3|max:1000',
+        ], [
+            'reason.required' => 'Le motif du rejet est obligatoire.',
+            'reason.min' => 'Le motif du rejet est trop court.',
+        ]);
+
         $casting = Casting::findOrFail($id);
 
-        if ($casting->status === 'validated') {
-            return redirect()->back()->with('success', 'Ce casting est deja valide.');
+        if (!$castingService->reject($casting, trim($data['reason']))) {
+            return redirect()->back()->with('error', 'Ce casting a deja ete traite.');
         }
 
-        $casting->update(['status' => 'validated']);
-
-        Notification::create([
-            'type' => 'casting',
-            'message' => "Casting approuve : {$casting->title}",
-        ]);
-
-        /* try {
-            Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
-        } catch (\Exception $e) {
-            // silence
-        } */
-
-       dispatch(function () use ($casting) {
-                try {
-                    Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'approved'));
-                } catch (\Throwable $e) {
-                    // silence
-                }
-            })->afterResponse();
-
-        // Envoie un email a tous les candidats dont les categories
-        // correspondent a ce casting.
-        $matchingService->notifyMatchingCandidates($casting);
-
-        return redirect()->back()->with('success', 'Casting valide avec succes');
-    }
-
-    public function rejectCasting(Request $request, $id)
-    {
-        $casting = Casting::findOrFail($id);
-        $casting->update([
-            'status' => 'rejected',
-            'rejection_reason' => $request->reason,
-        ]);
-
-        Notification::create([
-            'type' => 'casting',
-            'message' => "Casting rejete : {$casting->title}" . ($request->reason ? " - {$request->reason}" : ""),
-        ]);
-
-        /* try {
-            Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'rejected'));
-        } catch (\Exception $e) {
-            // silence
-        } */
-
-            dispatch(function () use ($casting) {
-    try {
-        Mail::to($casting->promoter_email)->send(new CastingNotification($casting, 'rejected'));
-    } catch (\Throwable $e) {
-        // silence
-    }
-})->afterResponse();
-
-        return redirect()->back()->with('success', 'Casting rejete');
+        return redirect()->back()->with('success', 'Casting rejete. Le promoteur a ete informe du motif.');
     }
 
     public function destroy($id)

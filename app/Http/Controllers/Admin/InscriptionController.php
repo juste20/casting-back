@@ -9,7 +9,8 @@ class InscriptionController extends Controller
 {
     public function index()
     {
-        $subscriptions = Subscription::latest()->get();
+        /* $subscriptions = Subscription::latest()->get(); */
+        $subscriptions = Subscription::where('status', '!=', 'archived')->latest()->get();
         $payments = \App\Models\Payment::whereIn('email', $subscriptions->pluck('email'))->get()->keyBy('email');
         return view('admin.subscriptions', compact('subscriptions', 'payments'));
     }

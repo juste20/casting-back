@@ -10,18 +10,45 @@ use Illuminate\Support\Facades\Storage;
 
 class CastingApiController extends Controller
 {
-    public function index()
+    /* public function index()
     {
         return response()->json(
             Casting::where('status', 'validated')->latest()->get()
         );
+    } */
+
+         public function index()
+    {
+        return response()->json(
+            Casting::where('status', 'validated')
+                ->where(function ($q) {
+                    $q->whereNull('end_date')
+                      ->orWhereDate('end_date', '>=', now()->toDateString());
+                })
+                ->latest()
+                ->get()
+        );
     }
 
-    public function validateCasting($id)
+    /* public function validateCasting($id)
     {
         $casting = Casting::findOrFail($id);
         $casting->status = 'validated';
         $casting->save();
+
+        return response()->json([
+            'message' => 'Casting valide avec succes',
+            'casting_id' => $casting->id
+        ]);
+    } */
+
+         public function validateCasting($id, CastingService $castingService)
+    {
+        $casting = Casting::findOrFail($id);
+
+        if (!$castingService->validate($casting)) {
+            return response()->json(['message' => 'Ce casting a deja ete traite.'], 409);
+        }
 
         return response()->json([
             'message' => 'Casting valide avec succes',

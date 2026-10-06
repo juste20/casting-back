@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Auth\AuthenticationException;
 use App\Services\CastingService;
+use App\Services\ArchiveService;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,10 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withSchedule(function (Schedule $schedule) {
-        $schedule->call(fn () => app(CastingService::class)->archiveExpired())
-            ->dailyAt('00:00')
-            ->description('Archiver les castings expires');
+        ->withSchedule(function (Schedule $schedule) {
+        $schedule->call(fn () => app(ArchiveService::class)->runAll())
+            ->everyTenMinutes()
+            ->name('archive-auto')
+            ->withoutOverlapping()
+            ->description('Archiver castings expires, inscriptions et paiements traites');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('web', \App\Http\Middleware\SecurityHeaders::class);

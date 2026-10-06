@@ -82,7 +82,9 @@ class PaymentController extends Controller
                 'type' => 'paiement',
                 'message' => "Nouveau paiement de " . number_format($payment->amount, 0, ',', ' ') . " FCFA - " . ($payload['fullname'] ?? $payment->email),
             ]);
-        } elseif ($payment) {
+        } /* elseif ($payment) {
+            $payment->update(['status' => 'failed']);
+        } */     elseif (in_array($status, ['declined', 'canceled'], true) && $payment->status !== 'success') {
             $payment->update(['status' => 'failed']);
         }
 

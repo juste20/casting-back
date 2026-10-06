@@ -13,7 +13,8 @@ class PaymentController extends Controller
      */
     public function index(): View
     {
-        $payments = Payment::latest()->get();
+        /* $payments = Payment::latest()->get(); */
+        $payments = Payment::whereNull('archived_at')->latest()->get();
 
         return view('admin.payments', compact('payments'));
     }

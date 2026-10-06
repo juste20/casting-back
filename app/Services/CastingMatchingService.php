@@ -4,53 +4,23 @@ namespace App\Services;
 
 use App\Mail\CastingMatchMail;
 use App\Models\Casting;
+use App\Models\Payment;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class CastingMatchingService
 {
-    /**
-     * Trouve tous les candidats (Subscription) dont les categories
-     * choisies correspondent a une des categories du casting, et leur
-     * envoie un email pour les informer qu'un casting leur correspond.
-     *
-     * @return int Nombre d'emails envoyes avec succes
-     */
+    private const ELIGIBLE_STATUSES = ['pending', 'approved'];
 
     public function notifyMatchingCandidates(Casting $casting): void
-{
-    $categoryNames = $casting->categories()->pluck('name')->filter()->unique()->values();
-
-    if ($categoryNames->isEmpty()) {
-        return;
+    {
+        dispatch(function () use ($casting) {
+            $this->processMatchingCandidates($casting);
+        })->afterResponse();
     }
 
-    $candidates = Subscription::where(function ($query) use ($categoryNames) {
-        foreach ($categoryNames as $name) {
-            $query->orWhereJsonContains('categories', $name);
-        }
-    })->get();
-
-    dispatch(function () use ($candidates, $casting) {
-        foreach ($candidates as $subscription) {
-            if (!filter_var($subscription->email, FILTER_VALIDATE_EMAIL)) {
-                continue;
-            }
-
-            try {
-                Mail::to($subscription->email)->send(new CastingMatchMail($casting, $subscription));
-            } catch (\Throwable $e) {
-                Log::error('Echec envoi email casting correspondant', [
-                    'subscription_id' => $subscription->id,
-                    'casting_id' => $casting->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-    })->afterResponse();
-}
-    /* public function notifyMatchingCandidates(Casting $casting): int
+    public function processMatchingCandidates(Casting $casting): int
     {
         $categoryNames = $casting->categories()->pluck('name')->filter()->unique()->values();
 
@@ -58,11 +28,15 @@ class CastingMatchingService
             return 0;
         }
 
-        $candidates = Subscription::where(function ($query) use ($categoryNames) {
-            foreach ($categoryNames as $name) {
-                $query->orWhereJsonContains('categories', $name);
-            }
-        })->get();
+        $candidates = Subscription::with('payment')
+            ->whereIn('status', self::ELIGIBLE_STATUSES)
+            ->whereHas('payment', fn ($q) => $q->valid())
+            ->where(function ($query) use ($categoryNames) {
+                foreach ($categoryNames as $name) {
+                    $query->orWhereJsonContains('categories', $name);
+                }
+            })
+            ->get();
 
         $sent = 0;
 
@@ -71,10 +45,30 @@ class CastingMatchingService
                 continue;
             }
 
+            $payment = $subscription->payment;
+
+            // Réservation atomique : un paiement = un seul mail
+            $claimed = Payment::whereKey($payment->id)
+                ->whereNull('consumed_at')
+                ->update(['consumed_at' => now()]);
+
+            if (!$claimed) {
+                continue;
+            }
+
             try {
                 Mail::to($subscription->email)->send(new CastingMatchMail($casting, $subscription));
+
+                $subscription->update([
+                    'status' => 'sent',
+                    'casting_id' => $casting->id,
+                ]);
+
                 $sent++;
             } catch (\Throwable $e) {
+                // Échec : le paiement redevient valide
+                Payment::whereKey($payment->id)->update(['consumed_at' => null]);
+
                 Log::error('Echec envoi email casting correspondant', [
                     'subscription_id' => $subscription->id,
                     'casting_id' => $casting->id,
@@ -84,5 +78,5 @@ class CastingMatchingService
         }
 
         return $sent;
-    } */
+    }
 }

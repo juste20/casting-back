@@ -66,4 +66,9 @@ class Subscription extends Model
     {
         return $this->belongsTo(Casting::class);
     }
+
+        public function payment()
+    {
+        return $this->hasOne(Payment::class, 'reference', 'payment_reference');
+    }
 }

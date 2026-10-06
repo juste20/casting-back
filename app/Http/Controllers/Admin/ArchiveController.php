@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Archive;
 use App\Services\CastingService;
+use App\Services\ArchiveService;
 
 class ArchiveController extends Controller
 {
@@ -29,11 +30,22 @@ class ArchiveController extends Controller
         ));
     }
 
-    public function run()
+    /* public function run()
     {
         app(CastingService::class)->archiveExpired();
 
         return redirect()->route('admin.archives')
             ->with('success', 'Archivage effectue avec succes');
+    } */
+
+                public function run()
+    {
+        $done = app(ArchiveService::class)->runAll();
+
+        return redirect()->route('admin.archives')
+            ->with('success', sprintf(
+                'Archivage effectue : %d casting(s), %d inscription(s), %d paiement(s).',
+                $done['castings'], $done['subscriptions'], $done['payments']
+            ));
     }
 }

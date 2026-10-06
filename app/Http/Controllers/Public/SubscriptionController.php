@@ -22,8 +22,8 @@ class SubscriptionController extends Controller
             'payment_reference' => 'required|string|max:255'
         ]);
 
-        $payment = Payment::where('reference', $validated['payment_reference'])
-            ->where('status', 'success')
+               $payment = Payment::where('reference', $validated['payment_reference'])
+            ->valid()
             ->first();
 
         if (!$payment) {

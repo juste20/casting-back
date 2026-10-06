@@ -12,6 +12,12 @@
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
+@if(session('error'))
+    <div class="alert alert-error">{{ session('error') }}</div>
+@endif
+@if($errors->any())
+    <div class="alert alert-error">{{ $errors->first() }}</div>
+@endif
 
 <div class="table-card">
     <div class="table-card-header">
@@ -65,13 +71,28 @@
                                     {{ $casting->status !== 'pending' ? 'disabled' : '' }}
                                     title="Valider le casting">Valider</button>
                             </form>
-                            <form action="{{ route('admin.castings.reject', $casting->id) }}" method="POST" class="inline-form">
+                            <!-- <form action="{{ route('admin.castings.reject', $casting->id) }}" method="POST" class="inline-form">
                                 @csrf
                                 <input type="text" name="reason" placeholder="Motif (optionnel)" class="reason-input">
                                 <button class="btn btn-sm btn-danger"
                                     {{ $casting->status !== 'pending' ? 'disabled' : '' }}
                                     title="Rejeter le casting">Rejeter</button>
-                            </form>
+                            </form> -->
+                            @if($casting->status === 'pending')
+                                <details class="reject-box">
+                                    <summary class="btn btn-sm btn-danger">Rejeter</summary>
+                                    <form action="{{ route('admin.castings.reject', $casting->id) }}" method="POST" class="reject-form">
+                                        @csrf
+                                        <label class="reject-label" for="reason-{{ $casting->id }}">Motif du rejet (obligatoire)</label>
+                                        <textarea id="reason-{{ $casting->id }}" name="reason" class="reason-input" rows="3"
+                                            required minlength="3" maxlength="1000"
+                                            placeholder="Expliquez au promoteur pourquoi ce casting est rejete"></textarea>
+                                        <button type="submit" class="btn btn-sm btn-danger">Confirmer le rejet</button>
+                                    </form>
+                                </details>
+                            @else
+                                <button class="btn btn-sm btn-danger" disabled>Rejeter</button>
+                            @endif
                         </td>
                     </tr>
 
@@ -435,6 +456,15 @@ function closeModal(id) {
 .detail-desc { font-size: 13px; color: #9ca3af; line-height: 1.6; margin: 0; }
 .detail-poster { width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; }
 .detail-reason { font-size: 13px; color: var(--red); margin: 0; }
+
+
+.alert-error { background: rgba(229,9,20,0.1); color: #ff6b6b; border: 1px solid rgba(229,9,20,0.3); padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; }
+.reject-box { display: inline-block; position: relative; }
+.reject-box > summary { list-style: none; cursor: pointer; display: inline-block; }
+.reject-box > summary::-webkit-details-marker { display: none; }
+.reject-form { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: 280px; display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #141414; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
+.reject-label { font-size: 12px; color: #9ca3af; }
+.reject-form .reason-input { width: 100%; resize: vertical; }
 
 @media (max-width: 600px) {
     .detail-grid { grid-template-columns: 1fr; }

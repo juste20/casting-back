@@ -15,7 +15,14 @@ class CastingPublicController extends Controller
 
     public function index(): View
     {
-        $castings = Casting::where('status', 'validated')->latest()->get();
+        /* $castings = Casting::where('status', 'validated')->latest()->get(); */
+                $castings = Casting::where('status', 'validated')
+            ->where(function ($q) {
+                $q->whereNull('end_date')
+                  ->orWhereDate('end_date', '>=', now()->toDateString());
+            })
+            ->latest()
+            ->get();
         return view('castings', compact('castings'));
     }
 

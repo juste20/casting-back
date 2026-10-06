@@ -10,13 +10,16 @@
 <div class="notifications-container">
 
     @forelse($notifications as $notification)
-        <div class="notification-card">
+        <!-- <div class="notification-card"> -->
+            @php $isNew = in_array($notification->id, $unreadIds ?? []); @endphp
+            <div class="notification-card {{ $isNew ? 'is-new' : '' }}">
            <div class="notification-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             </div>
 
             <div class="notification-content">
                 {{ $notification->message }}
+                @if($isNew)<span class="notification-new">Nouveau</span>@endif
             </div>
 
             <div class="notification-date">
@@ -117,4 +120,6 @@
     color: #808080;
     font-size: 14px;
 }
+.notification-card.is-new { background: rgba(229,9,20,0.07); }
+.notification-new { margin-left: 8px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; background: #e50914; color: #fff; }
 </style>

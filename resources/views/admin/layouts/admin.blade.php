@@ -839,7 +839,7 @@ document.addEventListener('turbo:load', function() {
     }
 
     // Notification polling
-    var poll = setInterval(function() {
+      function refreshNotifBadge() {
         fetch('{{ route("admin.notifications.count") }}')
             .then(function(r) { return r.json() })
             .then(function(d) {
@@ -858,7 +858,10 @@ document.addEventListener('turbo:load', function() {
                 }
             })
             .catch(function() {});
-    }, 30000);
+    }
+
+    refreshNotifBadge();
+    var poll = setInterval(refreshNotifBadge, 30000);
 
     document.addEventListener('turbo:before-cache', function() {
         clearInterval(poll);

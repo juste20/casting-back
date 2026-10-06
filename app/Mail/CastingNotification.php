@@ -13,14 +13,26 @@ class CastingNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Casting $casting;
+    /* public Casting $casting;
     public string $action;
 
     public function __construct(Casting $casting, string $action)
     {
         $this->casting = $casting;
         $this->action = $action;
+    } */
+
+            public Casting $casting;
+    public string $action;
+    public ?string $reason;
+
+    public function __construct(Casting $casting, string $action, ?string $reason = null)
+    {
+        $this->casting = $casting;
+        $this->action = $action;
+        $this->reason = $reason ?? $casting->rejection_reason;
     }
+    
 
     public function envelope(): Envelope
     {

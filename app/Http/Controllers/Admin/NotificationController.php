@@ -10,8 +10,12 @@ class NotificationController extends Controller
     public function index()
     {
         $notifications = Notification::latest()->get();
+        $unreadIds = $notifications->whereNull('read_at')->pluck('id')->all();
 
-        return view('admin.notifications', compact('notifications'));
+        // Le compteur revient à 0
+        Notification::whereNull('read_at')->update(['read_at' => now()]);
+
+        return view('admin.notifications', compact('notifications', 'unreadIds'));
     }
 
     public function count()
